@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang }}" prefix="og: http://ogp.me">
+  <head>
+  <meta charset="utf-8" />
+    <title>{{ page.title }}</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    {% css main %}
+	</head>
+  <body>
+    <nav>
+      <ul>
+        {% for lang in site.languages %}
+          <li>
+            {% if lang == 'en' %}
+              <a href="{{page.url}}">{{lang}}</a>
+            {% else %}
+              <a href="/{{lang}}{{page.url}}">{{lang}}</a>
+            {% endif %}
+          </li>
+        {% endfor %}
+    </nav>
+
+    {{ content }}
+  </body>
+</html>

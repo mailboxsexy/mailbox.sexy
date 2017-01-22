@@ -1,0 +1,21 @@
+{
+  "name": "mailbox.sexy",
+  "authors": [
+    "hello@mailbox.sexy"
+  ],
+  "description": "make email sexy again",
+  "main": "",
+  "license": "GPL3",
+  "homepage": "https://mailbox.sexy",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "furtive": "^2.3.0"
+  }
+}

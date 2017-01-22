@@ -1,0 +1,16 @@
+canonical: https://mailbox.sexy
+destination: /srv/http/mailbox.sexy
+permalink: ':title.html'
+lsi: false
+
+author: mailbox.sexy
+
+languages: [ 'en', 'es' ]
+exclude_from_localizations: [ 'assets' ]
+
+assets:
+  sources:
+    - _assets/css
+    - _assets/bower
+    - _assets/fonts
+    - _assets/img
