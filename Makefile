@@ -92,9 +92,52 @@ prepare: $(prepare_deps) ## Prepares Alpine
 # 
 # Install packages on Alpine
 
-packages := postfix postfix-pcre tor dovecot
+packages := postfix postfix-pcre tor dovecot openrc chrony
 
 install: ## Install packages
+	$(msg) 'Installing packages'
+	$(run_alpine) /sbin/apk $(quiet_flag) --no-progress add $(packages)
+	$(done)
+
+## Configure
+#
+# Run configuration tasks
+#
+
+# This file is created by tor on first run
+hostname_file := /var/lib/tor/mailbox.sexy/hostname
+rc_update     := $(work_dir)/etc/runlevels/default
+network_file  := $(work_dir)/etc/network/interfaces
+
+# This is a magic rule to enable OpenRC services
+$(rc_update)/%:
+	$(msg) 'Enabling $(notdir $@)'
+	$(run_alpine) /sbin/rc-update $(quiet_flag) add $(notdir $@) default
+	$(done)
+
+$(work_dir)/etc/postfix/main.cf: always
+	$(msg) 'Configuring main.cf'
+	$(run_alpine) /usr/sbin/postconf -e smtp_host_lookup=native
+	$(run_alpine) /usr/sbin/postconf -e ignore_mx_lookup_error=yes
+	$(run_alpine) /usr/sbin/postconf -e smtp_dns_support_level=enabled
+	$(run_alpine) /usr/sbin/postconf -e smtpd_relay_restrictions=permit_sasl_authenticated,defer_unauth_destination
+	$(run_alpine) /usr/sbin/postconf -e mydestination=$(hostname_file)
+	$(done)
+
+postfix: $(work_dir)/etc/postfix/main.cf $(rc_update)/postfix ## Configure postfix
+
+$(work_dir)/etc/torrc: $(work_dir)/etc/tor/torrc.sample
+	$(msg) 'Configuring tor'
+	$D cp -a $< $@
+	$D echo 'HiddenServiceDir $(dir $(hostname_file))' >>$@
+	$D echo 'HiddenServicePort 25  127.0.0.1:25'       >>$@
+	$D echo 'HiddenServicePort 587 127.0.0.1:587'      >>$@
+	$D echo 'HiddenServicePort 995 127.0.0.1:995'      >>$@
+	$(done)
+
+tor: $(work_dir)/etc/torrc $(rc_update)/tor ## Configure tor
+
+configure: postfix tor ## Configure mailbox.sexy
 
 ## Cleanup
 # 
@@ -127,7 +170,7 @@ config: always ## Show config
 	$(call info_about_var,alpine_file)
 	$(call info_about_var,alpine_dl)
 
-all: config download extract prepare cleanup ## Run all the targets
+all: config download extract prepare install cleanup ## Run all the targets
 
 clean: ## Remove temporary files
 	$(call msg,Removing tmp dir)
