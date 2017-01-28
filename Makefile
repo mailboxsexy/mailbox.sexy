@@ -16,39 +16,105 @@
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 root_dir := $(patsubst %/,%,$(dir $(mkfile_path)))
 
+# Get the config
 include config.mk
+# And some macros
 include lib/macros.mk
 
+# This is the target run when you run `make`, it shows a helpful
+# message.
 .DEFAULT_GOAL := help
 
+# Define a temporary directory
 tmp_dir := $(root_dir)/tmp
+# And create it
 $(tmp_dir):
-	$(call msg,Creating tmp dir)
-	$(D) mkdir -p $@
-	$(call done)
+	$(msg) 'Creating tmp dir'
+	$D mkdir -p $@
+	$(done)
 
+## Download
+# 
 # Downloads the alpine tarball into the tmp dir
 tarball := $(tmp_dir)/$(alpine_file)
 $(tarball): $(tmp_dir)
-	$(call msg,Downloading alpine)
-	$(D) wget '$(alpine_dl)' $(quiet_flag) -O '$@' --no-use-server-timestamps
-	$(call done)
+	$(msg) 'Downloading Alpine'
+	$D wget '$(alpine_dl)' $(quiet_flag) -O '$@' --no-use-server-timestamps
+	$(done)
 
 download: $(tarball) ## Download alpine
 
+## Extract
+# 
+# Creates a work directory and extracts Alpine into it
+
 work_dir := $(tmp_dir)/alpine-$(alpine_flavor)-$(alpine_full_version)-$(alpine_arch)
 $(work_dir): $(tmp_dir)
-	$(call msg,Creating work dir)
-	$(D) mkdir -p '$@'
-	$(call done)
+	$(msg) 'Creating work dir'
+	$D mkdir -p '$@'
+	$(done)
 
 $(work_dir)/etc/alpine-release: $(work_dir)
-	$(call msg,Extracting tarball)
-	$(D) cd '$<' && tar $(verbose_flag) -xmf $(tarball)
-	$(call done)
+	$(msg) 'Extracting tarball'
+	$D cd '$<' && tar $(verbose_flag) -xmf $(tarball)
+	$(done)
 
 extract: download $(work_dir) $(work_dir)/etc/alpine-release ## Extract alpine to work dir
 
+## Prepare the chroot
+#
+# This target does some adaptions to make the Alpine chroot work on the
+# host system.
+
+# This target runs always because the file already exists
+$(work_dir)/etc/inittab: always
+	$(msg) 'Configuring inittab'
+	$D sed -re 's/^tty/# &/' -i '$@'
+	$D grep -qw console '$@' || echo 'console::respawn:/sbin/getty 38400 console' >>'$@'
+	$(done)
+
+$(work_dir)/etc/localtime: /etc/localtime
+	$(msg) 'Setting local time'
+	$D cp -a $< $@
+	$(done)
+
+$(work_dir)/var/cache/apk/APKINDEX.%.tar.gz:
+	$(msg) 'Updating apk database'
+	$(run_alpine) /sbin/apk $(quiet_flag) update
+	$(done)
+	
+prepare_deps := $(work_dir)/etc/inittab $(work_dir)/etc/localtime \
+	$(work_dir)/var/cache/apk/APKINDEX.%.tar.gz
+
+prepare: $(prepare_deps) ## Prepares Alpine
+
+## Install
+# 
+# Install packages on Alpine
+
+packages := postfix postfix-pcre tor dovecot
+
+install: ## Install packages
+
+## Cleanup
+# 
+# Remove files from the Alpine chroot that shouldn't be there
+# when the system is done installing and it's being packaged.
+#
+# Add files to remove on the cleanup_deps variable.
+
+cleanup_deps := $(work_dir)/etc/localtime \
+	$(work_dir)/var/cache/apk/APKINDEX.*.tar.gz
+
+cleanup: $(cleanup_deps) ## Remove temporary files from Alpine
+	$(msg) 'Removing tmp files'
+	$D rm -rf $(verbose_flag) $^
+	$(done)
+
+## Configuration
+#
+# Prints the configuration.
+#
 # TODO just print everything defined on the current makefile.  we could
 # use export and `env` but it's mixed with stuff from the parent shell.
 config: always ## Show config
@@ -61,21 +127,25 @@ config: always ## Show config
 	$(call info_about_var,alpine_file)
 	$(call info_about_var,alpine_dl)
 
-all: config download extract ## Run all the targets
+all: config download extract prepare cleanup ## Run all the targets
 
 clean: ## Remove temporary files
 	$(call msg,Removing tmp dir)
-	$(D) rm -rf '$(tmp_dir)'
+	$D rm -rf '$(tmp_dir)'
+	$(call done)
 
 # Adapted from 'Auto documented Makefile', added -h to grep so it
 # doesn't confuse targets with makefiles
 #
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 #
-# TODO remove need for awk
+# Removed need for awk since it's fugly
 help: ## This help
 	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
-		| awk 'BEGIN {FS = ":.*?## "}; {printf "$(color_green)%-$(col_size)s$(color_blue)\t%s$(color_off)\n", $$1, $$2}'
+		| sed -r 's/:.*## /\t/' \
+		| while read -r target message; do \
+		  printf "$(color_green)%-$(col_size)s$(color_blue)\t%s$(color_off)\n" "$$target" "$$message" ;\
+		done
 
 # This makes rules run always, use it for files that already exist
 always: 
