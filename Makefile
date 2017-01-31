@@ -92,7 +92,7 @@ prepare: $(prepare_deps) ## Prepares Alpine
 # 
 # Install packages on Alpine
 
-packages := postfix postfix-pcre tor dovecot openrc chrony
+packages := postfix postfix-pcre tor dovecot openrc
 
 install: ## Install packages
 	$(msg) 'Installing packages'
@@ -114,6 +114,21 @@ $(rc_update)/%:
 	$(msg) 'Enabling $(notdir $@)'
 	$(run_alpine) /sbin/rc-update $(quiet_flag) add $(notdir $@) default
 	$(done)
+
+# TODO convert to template
+$(work_dir)/etc/network/interfaces: 
+	$(msg) 'Configuring network'
+	$D echo 'auto lo'                 >$@
+	$D echo 'iface lo inet loopback' >>$@
+	$D echo                          >>$@
+	$D echo 'auto host0'             >>$@
+	$D echo 'iface host0 inet static'>>$@
+	$D echo '	address 10.10.10.2'    >>$@
+	$D echo '	netmask 255.255.255.0' >>$@
+	$D echo '	gateway 10.10.10.1'    >>$@
+	$(done)
+
+networking: $(work_dir)/etc/network/interfaces $(rc_update)/networking ## Configure network
 
 $(work_dir)/etc/postfix/main.cf: always
 	$(msg) 'Configuring main.cf'
@@ -137,7 +152,7 @@ $(work_dir)/etc/torrc: $(work_dir)/etc/tor/torrc.sample
 
 tor: $(work_dir)/etc/torrc $(rc_update)/tor ## Configure tor
 
-configure: postfix tor ## Configure mailbox.sexy
+configure: networking postfix tor ## Configure mailbox.sexy
 
 ## Cleanup
 # 
@@ -171,6 +186,11 @@ config: always ## Show config
 	$(call info_about_var,alpine_dl)
 
 all: config download extract prepare install cleanup ## Run all the targets
+
+boot: ## Boot into Alpine for testing
+	$(msg) 'Starting Alpine'
+	$(D) systemd-nspawn --boot --network-veth --directory=$(work_dir)
+	$(done)
 
 clean: ## Remove temporary files
 	$(call msg,Removing tmp dir)
