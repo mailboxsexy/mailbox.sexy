@@ -35,11 +35,11 @@ endif
 
 # Call this variable with a short text to show a waiting message
 # $(call msg,Nobody expects the Spanish Inquisition!)
-msg = @ printf "$(color_yellow)%b$(color_off)\t"
+msg = @ printf "$(color_yellow)%b$(color_off)"
 
 # Call this variable alone to show a DONE message
 # $(call done)
-done = @ printf "%b\n" "$(color_green)[DONE]$(color_off)"
+done = @ printf "%b\n" "$(color_green)\t✔$(color_off)"
 
 # Print information about a variable
 # $(call info_about_var,variable_name)
