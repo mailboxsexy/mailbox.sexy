@@ -107,7 +107,6 @@ install: ## Install packages
 # This file is created by tor on first run
 hostname_file := /var/lib/tor/mailbox.sexy/hostname
 rc_update     := $(work_dir)/etc/runlevels/default
-network_file  := $(work_dir)/etc/network/interfaces
 
 # This is a magic rule to enable OpenRC services
 $(rc_update)/%:
@@ -115,23 +114,9 @@ $(rc_update)/%:
 	$(run_alpine) /sbin/rc-update $(quiet_flag) add $(notdir $@) default
 	$(done)
 
-# TODO convert to template
-$(work_dir)/etc/network/interfaces: 
-	$(msg) 'Configuring network'
-	$D echo 'auto lo'                 >$@
-	$D echo 'iface lo inet loopback' >>$@
-	$D echo                          >>$@
-	$D echo 'auto host0'             >>$@
-	$D echo 'iface host0 inet static'>>$@
-	$D echo '	address 10.10.10.2'    >>$@
-	$D echo '	netmask 255.255.255.0' >>$@
-	$D echo '	gateway 10.10.10.1'    >>$@
-	$(done)
-
-networking: $(work_dir)/etc/network/interfaces $(rc_update)/networking ## Configure network
-
 $(work_dir)/etc/postfix/main.cf: always
 	$(msg) 'Configuring main.cf'
+	$(run_alpine) /usr/sbin/postconf -e smtputf8_enable=no # alpine doesn't build postfix with icu
 	$(run_alpine) /usr/sbin/postconf -e smtp_host_lookup=native
 	$(run_alpine) /usr/sbin/postconf -e ignore_mx_lookup_error=yes
 	$(run_alpine) /usr/sbin/postconf -e smtp_dns_support_level=enabled
@@ -152,7 +137,7 @@ $(work_dir)/etc/torrc: $(work_dir)/etc/tor/torrc.sample
 
 tor: $(work_dir)/etc/torrc $(rc_update)/tor ## Configure tor
 
-configure: networking postfix tor ## Configure mailbox.sexy
+configure: postfix tor ## Configure mailbox.sexy
 
 ## Cleanup
 # 
@@ -189,7 +174,7 @@ all: config download extract prepare install cleanup ## Run all the targets
 
 boot: ## Boot into Alpine for testing
 	$(msg) 'Starting Alpine'
-	$(D) systemd-nspawn --boot --network-veth --directory=$(work_dir)
+	$(D) systemd-nspawn --boot --directory=$(work_dir)
 	$(done)
 
 clean: ## Remove temporary files
