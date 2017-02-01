@@ -23,6 +23,7 @@ quiet_flag :=
 # Use this variable when you want to spit more info about what's
 # happening
 verbose_flag := -v
+dev_null :=
 endif
 
 # Don't show commands by default and some variables to skip output
@@ -31,6 +32,8 @@ D := @
 # Make programs not spit anything
 quiet_flag := -q
 verbose_flag :=
+# &>/dev/null is shorter but not supported by ash?
+dev_null := >/dev/null 2>&1
 endif
 
 # Call this variable with a short text to show a waiting message

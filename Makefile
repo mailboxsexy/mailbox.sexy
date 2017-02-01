@@ -96,7 +96,7 @@ packages := postfix postfix-pcre tor dovecot openrc
 
 install: ## Install packages
 	$(msg) 'Installing packages'
-	$(run_alpine) /sbin/apk $(quiet_flag) --no-progress add $(packages)
+	$(run_alpine) /sbin/apk $(quiet_flag) --no-progress add $(packages) $(dev_null)
 	$(done)
 
 ## Configure
@@ -178,9 +178,9 @@ boot: ## Boot into Alpine for testing
 	$(done)
 
 clean: ## Remove temporary files
-	$(call msg,Removing tmp dir)
+	$(msg) 'Removing tmp dir'
 	$D rm -rf '$(tmp_dir)'
-	$(call done)
+	$(done)
 
 # Adapted from 'Auto documented Makefile', added -h to grep so it
 # doesn't confuse targets with makefiles
