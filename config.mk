@@ -38,3 +38,6 @@ alpine_dl           := https://fr.alpinelinux.org/alpine/v$(alpine_version)/rele
 # The column size for printing stuff like config and help
 col_size := 20
 large_col_size := 30
+
+# Make everything available to targets
+export
