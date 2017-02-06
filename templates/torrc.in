@@ -1,0 +1,12 @@
+# mailbox.sexy hidden service
+HiddenServiceDir ${tor_hostname_dir}
+HiddenServicePort 25  ${mailbox_address}:25
+HiddenServicePort 587 ${mailbox_address}:587
+HiddenServicePort 993 ${mailbox_address}:993
+HiddenServicePort 995 ${mailbox_address}:995
+
+# these options allow to send traffic to tor transparently using
+# iptables
+DNSPort ${mailbox_address}:${tor_dns_port}
+VirtualAddrNetworkIPv4 ${tor_virtual_network}
+AutomapHostsOnResolve 1

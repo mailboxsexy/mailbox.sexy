@@ -1,0 +1,13 @@
+# We want POP3 and IMAP
+protocols = pop3 imap
+# And only listen on mailbox.local address
+listen = ${mailbox_address}
+# Who's gonna see this?
+login_greeting = email is sexy
+
+# Allow postfix to authenticate
+service auth {
+  unix_listener /var/spool/postfix/private/auth {
+    mode = 0666
+  }
+}

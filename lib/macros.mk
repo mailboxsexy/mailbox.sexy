@@ -50,3 +50,19 @@ info_about_var = @ printf "%-$(large_col_size)b\t%b\n" "$(color_green)$1" "$(col
 
 # Runs command inside Alpine
 run_alpine = $D systemd-nspawn $(quiet_flag) -D $(work_dir)
+
+# Configures postfix
+postconf = $(run_alpine) /usr/sbin/postconf -e
+
+# This target builds any template using the variables defined in the
+# makefile.  If you need to leave a literal $variable, just define a
+# variable like this
+#
+# variable := $$variable
+#
+# It's a dirty hack to replace the variable by itself.  Otherwise
+# `envsubst` will remove the variable and you'll end up with a broken
+# template.
+tmp/templates/%: templates/%.in
+	$D mkdir -p $(dir $@)
+	$D envsubst <$< >$@

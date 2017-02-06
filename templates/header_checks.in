@@ -1,0 +1,6 @@
+# These regexes remove our IP address and system user id from headers,
+# but we're removing the received header altogether anyway.
+#
+# Uncomment to enable
+# /^Received:(.+userid )([0-9]\+)(.*)$/ REPLACE Received:${1}65000${3}
+# /^\s*(Received: from)[^\n]*(.*)/ REPLACE $1 [127.0.0.1] (localhost [127.0.0.1])$2

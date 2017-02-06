@@ -1,0 +1,21 @@
+server:
+# Only listen on the mailbox address
+  interface: ${mailbox_address}
+  username: "unbound"
+  directory: "/etc/unbound"
+  hide-identity: yes
+  hide-version: yes
+  use-syslog: yes
+  verbosity: 0
+# RFC7686 says DNS resolvers shouldn't answer to .onion queries, so we
+# have to enable them again
+  domain-insecure: "onion"
+  private-domain: "onion"
+  do-not-query-localhost: no
+  local-zone: "onion." nodefault
+  do-ip6: no
+
+# Forward .onion queries to tor daemon
+forward-zone:
+  name: "onion"
+  forward-addr: ${mailbox_address}@${tor_dns_port}

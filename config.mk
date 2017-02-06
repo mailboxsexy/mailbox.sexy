@@ -14,6 +14,20 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+# The local address for mailbox.sexy
+mailbox_address     ?= 127.0.0.2
+# The local domain for mailbox.sexy
+mailbox_domain      ?= mailbox.local
+# The local user
+mailbox_user        ?= mailbox
+
+# Tor's DNS
+tor_dns_port        ?= 5400
+# Virtual network
+tor_virtual_network ?= 10.192.0.0/10
+# Where is the private key and hostname.onion
+tor_hostname_dir    ?= /var/lib/tor/$(mailbox_domain)
+
 alpine_flavor       := minirootfs
 alpine_version      := 3.5
 alpine_full_version := $(alpine_version).0
