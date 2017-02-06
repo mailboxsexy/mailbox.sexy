@@ -58,10 +58,10 @@ $(work_dir): $(tmp_dir)
 $(work_dir)/etc/alpine-release: $(work_dir)
 	$(msg) 'Extracting tarball'
 	$D cd '$<' && tar $(verbose_flag) -xmf $(tarball)
-	$D touch '$<' # we touch it so it doesn't get extracted everytime
+	$D touch '$@' # we touch it so it doesn't get extracted everytime
 	$(done)
 
-extract: download $(work_dir) $(work_dir)/etc/alpine-release ## Extract alpine to work dir
+extract: $(work_dir) $(work_dir)/etc/alpine-release ## Extract alpine to work dir
 
 ## Prepare the chroot
 #
@@ -177,8 +177,8 @@ $(work_dir)/etc/postfix/main.cf: always
 	$(postconf) smtp_dns_support_level=enabled
 	$(postconf) smtpd_relay_restrictions=permit_sasl_authenticated,defer_unauth_destination
 	$(postconf) mydestination=$(hostname_file)
-	$(postconf) mydomain=$$mydestination
-	$(postconf) myhostname=$$mydestination
+	$(postconf) mydomain='$$mydestination'
+	$(postconf) myhostname='$$mydestination'
 	$(postconf) inet_protocols=ipv4
 	$(postconf) home_mailbox=Maildir/
 	$(postconf) recipient_delimiter=+
@@ -191,7 +191,7 @@ $(work_dir)/etc/postfix/main.cf: always
 	$(postconf) smtpd_sasl_security_options=noanonymous
 	$(postconf) smtp_sasl_security_options=noanonymous
 	$(postconf) broken_sasl_auth_clients=yes
-	$(postconf) smtpd_sasl_local_domain=$$myhostname
+	$(postconf) smtpd_sasl_local_domain='$$myhostname'
 	$(done)
 
 postfix_deps := $(work_dir)/etc/postfix/header_checks \
