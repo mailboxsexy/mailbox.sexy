@@ -28,23 +28,33 @@ configure_postfix() {
     done
 
     postconf -e mydomain="`cat /var/lib/tor/${mailbox_domain}/hostname`"
-    postconf -e mydestination="`cat /var/lib/tor/${mailbox_domain}/hostname`"
+    postconf -e mydestination="${mailbox_domain} `cat /var/lib/tor/${mailbox_domain}/hostname`"
   fi
 
   # Wrong permissions :/
   chown root:root /var/spool/postfix /var/spool/postfix/pid
 }
 
+configure_dovecot() {
+  # Get the password from shadow file and the rest from passwd
+  # 
+  # Runs always so password is kept up to date
+  getent passwd ${mailbox_user} \
+  | sed "s/:x:/:`grep "^${mailbox_user}:" /etc/shadow | cut -d: -f2`:/" \
+  > /etc/dovecot/users
+}
+
 # It runs between tor and postfix so postfix is aware of the onion
 # address
 depend() {
   after tor
-  before postfix
+  before postfix dovecot
 }
 
 start() {
   ebegin "Configuring ${mailbox_domain}"
   configure_postfix
+  configure_dovecot
   eend $?
 }
 

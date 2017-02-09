@@ -93,6 +93,10 @@ $(work_dir)/home/$(mailbox_user)/:
 		-g $(mailbox_user) \
 		$(mailbox_user)
 
+$(work_dir)/home/$(mailbox_user)/Maildir/:
+	$(run_alpine) /usr/bin/install -dm700 -o $(mailbox_user) \
+	  -g $(mailbox_user) $@ $@/cur $@/new $@/tmp
+
 $(work_dir)/etc/hostname: always
 	$(msg) 'Setting hostname'
 	$D echo $(mailbox_domain) >$@
@@ -107,6 +111,7 @@ $(work_dir)/etc/init.d/%: $(render_template)/%
 prepare_deps := $(work_dir)/etc/inittab $(work_dir)/etc/localtime \
 	$(work_dir)/var/cache/apk/APKINDEX.%.tar.gz \
 	$(work_dir)/home/$(mailbox_user)/ \
+	$(work_dir)/home/$(mailbox_user)/Maildir/ \
 	$(work_dir)/etc/hostname \
 	$(work_dir)/etc/init.d/fakenet \
 	$(work_dir)/etc/init.d/mailbox
@@ -200,6 +205,8 @@ $(work_dir)/etc/postfix/main.cf: always
 	$(postconf) smtpd_sasl_local_domain='$$myhostname'
 	$(postconf) smtpd_sasl_authenticated_header=no
 	$(postconf) inet_interfaces=$(mailbox_address)
+	$D echo 'root: $(mailbox_user)' >>/etc/postfix/aliases
+	$(run_alpine) /usr/bin/newaliases
 	$(done)
 
 $(workd_dir)/etc/postfix/master.cf: always
