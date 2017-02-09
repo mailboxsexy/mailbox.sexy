@@ -63,6 +63,19 @@ postconf = $(run_alpine) /usr/sbin/postconf -e
 # It's a dirty hack to replace the variable by itself.  Otherwise
 # `envsubst` will remove the variable and you'll end up with a broken
 # template.
-tmp/templates/%: templates/%.in
+#
+# Where the templates are:
+render_template := $(tmp_dir)/templates
+# To render a template, call it like this
+#   target: $(render_template)/the_template
+$(render_template)/%: templates/%.in
 	$D mkdir -p $(dir $@)
 	$D envsubst <$< >$@
+
+# Useful for enabling services
+rc_update := $(work_dir)/etc/runlevels
+# This is a magic rule to enable OpenRC services
+$(rc_update)/%:
+	$(msg) 'Enabling $(notdir $@)'
+	$(run_alpine) /sbin/rc-update $(quiet_flag) add $(notdir $@) $(notdir $(dir $@))
+	$(done)

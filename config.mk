@@ -22,18 +22,20 @@ mailbox_domain      ?= mailbox.local
 mailbox_user        ?= mailbox
 
 # Tor's DNS
-tor_dns_port        ?= 5400
+tor_dns_port         ?= 5400
 # Virtual network
-tor_virtual_network ?= 10.192.0.0/10
+tor_virtual_network  ?= 10.192.0.0/10
 # Where is the private key and hostname.onion
-tor_hostname_dir    ?= /var/lib/tor/$(mailbox_domain)
+tor_hostname_dir     ?= /var/lib/tor/$(mailbox_domain)
+# Transparent port
+tor_transparent_port ?= 9041
 
 alpine_flavor       := minirootfs
 alpine_version      := 3.5
-alpine_full_version := $(alpine_version).0
+alpine_full_version := $(alpine_version).1
 alpine_arch         := x86_64
 alpine_file         := alpine-$(alpine_flavor)-$(alpine_full_version)-$(alpine_arch).tar.gz
-alpine_dl           := https://fr.alpinelinux.org/alpine/v$(alpine_version)/releases/$(alpine_arch)/$(alpine_file)
+alpine_dl           := https://nl.alpinelinux.org/alpine/v$(alpine_version)/releases/$(alpine_arch)/$(alpine_file)
 
 # The column size for printing stuff like config and help
 col_size := 20

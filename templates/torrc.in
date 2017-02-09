@@ -1,3 +1,5 @@
+# Don't interfere with system tor
+SOCKSPort ${mailbox_address}:9050
 # mailbox.sexy hidden service
 HiddenServiceDir ${tor_hostname_dir}
 HiddenServicePort 25  ${mailbox_address}:25
@@ -10,3 +12,4 @@ HiddenServicePort 995 ${mailbox_address}:995
 DNSPort ${mailbox_address}:${tor_dns_port}
 VirtualAddrNetworkIPv4 ${tor_virtual_network}
 AutomapHostsOnResolve 1
+TransPort ${tor_transparent_port}

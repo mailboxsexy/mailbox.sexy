@@ -1,0 +1,53 @@
+#!/sbin/openrc-run
+# Copyright (c) 2017 Mailbox Sexy <hello@mailbox.sexy>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+
+# This file intentionally avoids using variables because it's a template
+# from mailbox.local's Makefile.  See lib/macros.mk for more info.
+description="Configures ${mailbox_domain}"
+
+configure_postfix() {
+  # Set the mydomain parameter if it wasn't
+  if postconf mydomain | cut -d= -f2 | test "$(cat)" = " ${mailbox_domain}"; then
+    # Wait until tor creates the onion address
+    while ! test -f /var/lib/tor/${mailbox_domain}/hostname ; do
+      sleep 1s
+    done
+
+    postconf -e mydomain="`cat /var/lib/tor/${mailbox_domain}/hostname`"
+    postconf -e mydestination="`cat /var/lib/tor/${mailbox_domain}/hostname`"
+  fi
+
+  # Wrong permissions :/
+  chown root:root /var/spool/postfix /var/spool/postfix/pid
+}
+
+# It runs between tor and postfix so postfix is aware of the onion
+# address
+depend() {
+  after tor
+  before postfix
+}
+
+start() {
+  ebegin "Configuring ${mailbox_domain}"
+  configure_postfix
+  eend $?
+}
+
+stop() {
+  :
+}
