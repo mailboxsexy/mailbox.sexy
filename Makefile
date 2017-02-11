@@ -219,7 +219,7 @@ $(work_dir)/etc/postfix/main.cf: always
 	$(postconf) smtpd_tls_key_file=/etc/ssl/dovecot/server.key
 	$(done)
 
-$(workd_dir)/etc/postfix/master.cf: always
+$(work_dir)/etc/postfix/master.cf: always
 	$(msg) 'Configuring master.cf'
 	$(postconf) -M submission/inet='submission   inet   n   -   n   -   -   smtpd'
 	$(postconf) -P 'submission/inet/syslog_name=postfix/submission'
@@ -240,7 +240,7 @@ $(work_dir)/etc/postfix/aliases: always
 
 postfix_deps := $(work_dir)/etc/postfix/header_checks \
 	$(work_dir)/etc/postfix/main.cf \
-	$(workd_dir)/etc/postfix/master.cf \
+	$(work_dir)/etc/postfix/master.cf \
 	$(work_dir)/etc/postfix/aliases \
 	$(rc_update)/default/postfix
 
