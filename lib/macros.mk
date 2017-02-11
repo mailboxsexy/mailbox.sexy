@@ -49,7 +49,7 @@ done = @ printf "%b\n" "$(color_green)\t✔$(color_off)"
 info_about_var = @ printf "%-$(large_col_size)b\t%b\n" "$(color_green)$1" "$(color_blue)$($1)$(color_off)"
 
 # Runs command inside Alpine
-run_alpine = $D systemd-nspawn $(quiet_flag) -D $(work_dir)
+run_alpine = $D systemd-nspawn $(quiet_flag) -D $(work_dir) -M $(mailbox_domain)
 
 # Configures postfix
 postconf = $(run_alpine) /usr/sbin/postconf -e

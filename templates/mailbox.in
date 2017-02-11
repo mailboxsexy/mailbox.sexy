@@ -31,6 +31,11 @@ configure_postfix() {
     postconf -e mydestination="${mailbox_domain} `cat /var/lib/tor/${mailbox_domain}/hostname`"
   fi
 
+  newaliases
+  postmap /etc/postfix/virtual
+  postmap /etc/postfix/transport
+  postmap /etc/postfix/canonical
+
   # Wrong permissions :/
   chown root:root /var/spool/postfix /var/spool/postfix/pid
 }
@@ -40,7 +45,7 @@ configure_dovecot() {
   # 
   # Runs always so password is kept up to date
   getent passwd ${mailbox_user} \
-  | sed "s/:x:/:`grep "^${mailbox_user}:" /etc/shadow | cut -d: -f2`:/" \
+  | sed "s|:x:|:`grep "^${mailbox_user}:" /etc/shadow | cut -d: -f2`:|" \
   > /etc/dovecot/users
 }
 

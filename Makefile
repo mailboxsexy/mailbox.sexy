@@ -87,19 +87,28 @@ $(work_dir)/var/cache/apk/APKINDEX.%.tar.gz:
 	$(done)
 
 $(work_dir)/home/$(mailbox_user)/:
+	$(msg) 'Creating $(mailbox_user) user'
 	$(run_alpine) /usr/sbin/adduser \
 	  -h /home/$(mailbox_user) \
 		-s /bin/false -D \
 		-g $(mailbox_user) \
 		$(mailbox_user)
+	$(done)
 
-$(work_dir)/home/$(mailbox_user)/Maildir/:
+$(work_dir)/home/$(mailbox_user)/Maildir/: $(work_dir)%:
+	$(msg) 'Installing maildir'
 	$(run_alpine) /usr/bin/install -dm700 -o $(mailbox_user) \
-	  -g $(mailbox_user) $@ $@/cur $@/new $@/tmp
+	  -g $(mailbox_user) $* $*cur $*new $*tmp
+	$(done)
 
 $(work_dir)/etc/hostname: always
 	$(msg) 'Setting hostname'
 	$D echo $(mailbox_domain) >$@
+	$(done)
+
+$(work_dir)/etc/hosts: $(render_template)/hosts
+	$(msg) 'Setting hosts'
+	$D install -m 644 -o root -g root $< $@
 	$(done)
 
 # Installs our services
@@ -113,6 +122,7 @@ prepare_deps := $(work_dir)/etc/inittab $(work_dir)/etc/localtime \
 	$(work_dir)/home/$(mailbox_user)/ \
 	$(work_dir)/home/$(mailbox_user)/Maildir/ \
 	$(work_dir)/etc/hostname \
+	$(work_dir)/etc/hosts \
 	$(work_dir)/etc/init.d/fakenet \
 	$(work_dir)/etc/init.d/mailbox
 
@@ -122,7 +132,7 @@ prepare: $(prepare_deps) ## Prepares Alpine
 # 
 # Install packages on Alpine
 
-packages := postfix postfix-pcre tor dovecot openrc unbound
+packages := postfix postfix-pcre tor dovecot openrc unbound darkhttpd
 
 install: ## Install packages
 	$(msg) 'Installing packages'
@@ -205,8 +215,8 @@ $(work_dir)/etc/postfix/main.cf: always
 	$(postconf) smtpd_sasl_local_domain='$$myhostname'
 	$(postconf) smtpd_sasl_authenticated_header=no
 	$(postconf) inet_interfaces=$(mailbox_address)
-	$D echo 'root: $(mailbox_user)' >>/etc/postfix/aliases
-	$(run_alpine) /usr/bin/newaliases
+	$(postconf) smtpd_tls_cert_file=/etc/ssl/dovecot/server.pem
+	$(postconf) smtpd_tls_key_file=/etc/ssl/dovecot/server.key
 	$(done)
 
 $(workd_dir)/etc/postfix/master.cf: always
@@ -225,9 +235,13 @@ $(workd_dir)/etc/postfix/master.cf: always
 	$(postconf) -P 'submission/inet/smtpd_recipient_restrictions=permit_mynetworks,permit_sasl_authenticated,reject'
 	$(done)
 
+$(work_dir)/etc/postfix/aliases: always
+	$D grep -q 'root: $(mailbox_user)' $@ || echo 'root: $(mailbox_user)' >>$@
+
 postfix_deps := $(work_dir)/etc/postfix/header_checks \
 	$(work_dir)/etc/postfix/main.cf \
 	$(workd_dir)/etc/postfix/master.cf \
+	$(work_dir)/etc/postfix/aliases \
 	$(rc_update)/default/postfix
 
 postfix: $(postfix_deps) ## Configure postfix
@@ -261,7 +275,17 @@ unbound_deps := $(work_dir)/etc/unbound/unbound.conf $(rc_update)/default/unboun
 
 unbound: $(unbound_deps) ## Configure unbound
 
-configure: local postfix dovecot tor unbound ## Configure mailbox.sexy
+# It couldn't be more fugly, uh?
+$(work_dir)/var/www/localhost/htdocs/mail/config-v1.1.xml: $(render_template)/config-v1.1.xml
+	$(msg) 'Configuring darkhttpd'
+	$D install -Dm644 -o root -g root $< $@
+	$(done)
+
+darkhttpd_deps := $(rc_update)/default/darkhttpd \
+	$(work_dir)/var/www/localhost/htdocs/mail/config-v1.1.xml
+darkhttpd: $(darkhttpd_deps) ## Configure darkhttpd
+
+configure: local postfix dovecot tor unbound darkhttpd ## Configure mailbox.sexy
 
 ## Cleanup
 # 
@@ -314,6 +338,7 @@ boot: ## Boot into Alpine for testing
 run: ## Run Alpine as if installed
 	$(msg) 'Configuring host'
 	$D grep -qw $(mailbox_domain) /etc/hosts || echo '$(mailbox_address) $(mailbox_domain)' >>/etc/hosts
+	$D grep -qw autoconfig.$(mailbox_domain) /etc/hosts || echo '$(mailbox_address) autoconfig.$(mailbox_domain)' >>/etc/hosts
 	$(done)
 	$(msg) 'Configuring firewall'
 	$D iptables -t nat -A PREROUTING -p tcp -d $(tor_virtual_network) -j REDIRECT --to-port $(tor_transparent_port)
@@ -346,6 +371,10 @@ help: ## This help
 		| while read -r target message; do \
 		  printf "$(color_green)%-$(col_size)s$(color_blue)\t%s$(color_off)\n" "$$target" "$$message" ;\
 		done
+
+email: clean
+sexy: all
+again:
 
 # This makes rules run always, use it for files that already exist
 always: 

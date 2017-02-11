@@ -1,0 +1,32 @@
+<clientConfig version="1.1">
+  <emailProvider id="${mailbox_domain}">
+    <domain>${mailbox_domain}</domain>
+    <displayName>${mailbox_domain}</displayName>
+    <displayShortName>make email sexy again</displayShortName>
+    <incomingServer type="imap">
+      <hostname>${mailbox_domain}</hostname>
+      <port>993</port>
+      <socketType>SSL</socketType>
+      <authentication>password-cleartext</authentication>
+      <username>%EMAILLOCALPART%</username>
+    </incomingServer>
+    <incomingServer type="pop3">
+      <hostname>${mailbox_domain}</hostname>
+      <port>995</port>
+      <socketType>SSL</socketType>
+      <authentication>password-cleartext</authentication>
+      <username>%EMAILLOCALPART%</username>
+    </incomingServer>
+    <outgoingServer type="smtp">
+      <hostname>${mailbox_domain}</hostname>
+      <port>465</port>
+      <socketType>SSL</socketType>
+      <authentication>password-cleartext</authentication>
+      <username>%EMAILLOCALPART%</username>
+    </outgoingServer>
+    <documentation url="https://mailbox.sexy">
+      <descr lang="es">Configurar cliente de correo</descr>
+      <descr lang="en">Configure e-mail client</descr>
+    </documentation>
+  </emailProvider>
+</clientConfig>
