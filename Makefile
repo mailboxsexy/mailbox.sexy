@@ -374,7 +374,7 @@ help: ## This help
 
 email: clean
 sexy: all
-again:
+again: ; $D :
 
 # This makes rules run always, use it for files that already exist
 always: 
