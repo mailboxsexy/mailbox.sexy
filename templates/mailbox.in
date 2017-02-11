@@ -29,6 +29,11 @@ configure_postfix() {
 
     postconf -e mydomain="`cat /var/lib/tor/${mailbox_domain}/hostname`"
     postconf -e mydestination="${mailbox_domain} `cat /var/lib/tor/${mailbox_domain}/hostname`"
+
+    # canonicalize the local address into the onion address
+    echo -n '${mailbox_user}@${mailbox_address} ${mailbox_user}@' \
+    | cat - /var/lib/tor/${mailbox_domain}/hostname \
+    >> /etc/postfix/canonical
   fi
 
   newaliases
