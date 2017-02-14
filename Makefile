@@ -268,7 +268,7 @@ tor: $(work_dir)/etc/tor/torrc $(rc_update)/default/tor ## Configure tor
 
 $(work_dir)/etc/unbound/unbound.conf: $(render_template)/unbound.conf
 	$(msg) 'Configuring unbound'
-	$D install -m 640 -o root -g unbound $< $@
+	$D install -m 644 -o root -g root $< $@
 	$(done)
 
 unbound_deps := $(work_dir)/etc/unbound/unbound.conf $(rc_update)/default/unbound
@@ -345,7 +345,7 @@ run: ## Run Alpine as if installed
 	$D iptables -t nat -A OUTPUT     -p tcp -d $(tor_virtual_network) -j REDIRECT --to-port $(tor_transparent_port)
 	$(done)
 	$(msg) 'Configuring network'
-	$D ip address add $(mailbox_address)/32 dev lo
+	$D ip address add $(mailbox_address)/32 dev lo || :
 	$(done)
 	$(MAKE) boot
 	$(msg) 'Tearing down'
