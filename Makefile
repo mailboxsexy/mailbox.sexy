@@ -14,7 +14,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
-root_dir := $(patsubst %/,%,$(dir $(mkfile_path)))
+root_dir    := $(patsubst %/,%,$(dir $(mkfile_path)))
+tmp_dir     := $(root_dir)/tmp
 
 # Get the config
 include config.mk
@@ -25,9 +26,6 @@ include lib/macros.mk
 # message.
 .DEFAULT_GOAL := help
 
-# Define a temporary directory
-tmp_dir := $(root_dir)/tmp
-# And create it
 $(tmp_dir):
 	$(msg) 'Creating tmp dir'
 	$D mkdir -p $@
@@ -325,8 +323,36 @@ config: always ## Show config
 	$(call info_about_var,alpine_arch)
 	$(call info_about_var,alpine_file)
 	$(call info_about_var,alpine_dl)
+	$(call info_about_var,render_template)
 
 all: config download extract prepare install configure cleanup ## Run all the targets
+
+$(tmp_dir)/lib/macros.mk: lib/macros.mk
+	$D install -Dm 644 -o root -g root $< $@
+
+$(tmp_dir)/lib/colors.mk: lib/colors.mk
+	$D install -Dm 644 -o root -g root $< $@
+
+$(tmp_dir)/config.mk: config.mk
+	$D install -Dm 644 -o root -g root $< $@
+
+$(tmp_dir)/Makefile: $(render_template)/Makefile
+	$D install -Dm 644 -o root -g root $< $@
+
+mailbox_dir  := $(mailbox_domain).$(shell date +%F)
+tarball_deps := $(render_template)/override.conf \
+	$(render_template)/systemd-nspawn@debian.service \
+	$(work_dir) \
+	$(tmp_dir)/Makefile \
+	$(tmp_dir)/lib/macros.mk \
+	$(tmp_dir)/lib/colors.mk \
+	$(tmp_dir)/config.mk
+tarball: $(tarball_deps) ## Create a tarball for distribution
+	$(msg) "Tarballin'"
+	$D tar $(verbose_flag) --transform='s/^$(notdir $(tmp_dir))/$(mailbox_dir)/' \
+	  -cJf $(mailbox_dir).tar.xz \
+	  $(patsubst $(dir $(tmp_dir))%,%,$^)
+	$(done)
 
 boot: ## Boot into Alpine for testing
 	$(msg) 'Starting Alpine'
@@ -371,10 +397,11 @@ help: ## This help
 		| while read -r target message; do \
 		  printf "$(color_green)%-$(col_size)s$(color_blue)\t%s$(color_off)\n" "$$target" "$$message" ;\
 		done
+	$(msg) '\nAdd V=99 for verbose mode\n'
 
 email: clean
 sexy: all
-again: ; $D :
+again: tarball
 
 # This makes rules run always, use it for files that already exist
 always: 

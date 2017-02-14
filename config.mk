@@ -20,6 +20,8 @@ mailbox_address     ?= 127.0.0.2
 mailbox_domain      ?= mailbox.local
 # The local user
 mailbox_user        ?= mailbox
+# The container name
+mailbox_container   ?= mailbox
 
 # Tor's DNS
 tor_dns_port         ?= 5400

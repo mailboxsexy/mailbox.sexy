@@ -1,0 +1,50 @@
+# This is an override for systemd 215 (Debian Jessie)
+
+#  This file is part of systemd.
+#
+#  systemd is free software; you can redistribute it and/or modify it
+#  under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation; either version 2.1 of the License, or
+#  (at your option) any later version.
+
+[Unit]
+Description=Container %i
+Documentation=man:systemd-nspawn(1)
+
+[Service]
+ExecStart=/usr/bin/systemd-nspawn --quiet --keep-unit --boot --directory=/var/lib/container/%i
+# Since Alpine/Busybox doesn't interpret the SIGRTMIN-4 signal that
+# systemd sends to start a graceful shutdown, we tell systemd so send
+# SIGUSR1 to /sbin/init instead.
+#
+# This will work with `machinectl terminate ${mailbox_container}` but
+# not with `machinectl stop ${mailbox_container}`.
+#
+# See https://forja.lainventoria.com.ar/mailbox.sexy/mailbox/issues/13
+KillMode=none
+Type=notify
+ExecStop=/bin/sh -c 'machinectl show ${mailbox_container} | grep Leader | cut -d= -f2 | xargs kill -SIGUSR1'
+RestartForceExitStatus=133
+SuccessExitStatus=133
+
+# Add the mailbox address before start, but don't fail
+ExecStartPre=-/usr/bin/ip address add ${mailbox_address} dev lo
+# Remove it
+ExecStopPost=-/usr/bin/ip address del ${mailbox_address} dev lo
+
+# Add transparent proxying to Tor
+ExecStartPre=/sbin/iptables -t nat -A PREROUTING -p tcp -d ${tor_virtual_network} -j REDIRECT --to-port ${tor_transparent_port}
+ExecStartPre=/sbin/iptables -t nat -A OUTPUT     -p tcp -d ${tor_virtual_network} -j REDIRECT --to-port ${tor_transparent_port}
+# And remove it
+ExecStopPost=/sbin/iptables -t nat -D PREROUTING -p tcp -d ${tor_virtual_network} -j REDIRECT --to-port ${tor_transparent_port}
+ExecStopPost=/sbin/iptables -t nat -D OUTPUT     -p tcp -d ${tor_virtual_network} -j REDIRECT --to-port ${tor_transparent_port}
+
+# Append hostnames to /etc/hosts
+# 
+# TODO make elegant or move everything to own script
+ExecStartPre=/bin/sh -c 'grep -q "^${mailbox_address} ${mailbox_domain}" /etc/hosts || echo "${mailbox_address} ${mailbox_domain}" >>/etc/hosts'
+ExecStartPre=/bin/sh -c 'grep -q "^${mailbox_address} autoconfig.${mailbox_domain}" /etc/hosts || echo "${mailbox_address} autoconfig.${mailbox_domain}" >>/etc/hosts'
+
+[Install]
+WantedBy=multi-user.target
+

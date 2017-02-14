@@ -1,0 +1,98 @@
+# Copyright (c) 2017 Mailbox Sexy <hello@mailbox.sexy>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+
+# Get info from the OS
+include /etc/os-release
+include config.mk
+include lib/macros.mk
+
+container := alpine-$(alpine_flavor)-$(alpine_full_version)-$(alpine_arch)
+
+# Usually Debian does thing its way and you need to do stuff like these
+ifeq ($(ID),debian)
+is_debian=true
+else
+is_vanilla=true
+endif
+
+
+ifdef is_debian
+container_dir := /var/lib/container
+service_file  := templates/systemd-nspawn@mailbox.service
+service_dest  := /etc/systemd/system/systemd-nspawn@$(mailbox_container).service
+endif
+
+ifdef is_vanilla
+container_dir := /var/lib/machines
+service_file  := templates/override.conf
+service_dest  := /etc/systemd/system/systemd-nspawn@$(mailbox_container).service.d/override.conf
+endif
+
+
+work_dir := $(container_dir)/$(mailbox_container)/
+$(work_dir)/: $(container)
+	$(msg) 'Installing container'
+	$D cp -a $< $@
+	$(done)
+
+$(work_dir)/etc/localtime: /etc/localtime
+	$(msg) 'Setting localtime'
+	$D cp --dereference $< $@
+	$(done)
+
+$(service_dest): $(service_file)
+	$(msg) 'Enabling container'
+	$D install -Dm 644 -o root -g root $< $@
+ifdef is_vanilla
+	$D systemctl daemon-reload
+endif
+	$D systemctl enable systemd-nspawn@$(mailbox_container).service
+	$(done)
+
+passwd: ## Change your password
+	$(msg) "Please set your password\n"
+	$(run_alpine) /usr/bin/passwd $(mailbox_user)
+
+install: $(work_dir) $(service_dest) $(work_dir)/etc/localtime ## Install mailbox.sexy!
+	$(msg) 'Thanks for installing mailbox.sexy!\n'
+	$(msg) 'Now you can run it with this command:\n'
+	$(msg) '\n'
+	$(msg) '  systemctl start systemd-nspawn@$(mailbox_container).service\n'
+	$(msg) '\n'
+	$(msg) 'You can configure it on your email client with this info\n'
+	$(msg) '\n'
+	$(msg) '* Username: $(mailbox_user)\n'
+	$(msg) '* Password: the one you just give me\n'
+	$(msg) '* Server: $(mailbox_domain)\n'
+	$(msg) '* SMTP Port: 587 (STARTTLS)\n'
+	$(msg) '* IMAP Port: 993 (TLS)\n'
+	$(msg) '* POP3 Port: 995 (TLS)\n'
+	$(msg) '\n'
+	$(msg) 'If you use Thunderbird, just use the address $(mailbox_user)@$(mailbox_domain) and it will be autoconfigured!\n'
+	$(msg) '\n'
+	$(msg) "You'll receive an email with further instructions.\n"
+
+all: install passwd ## Install, set password and start sending email
+	$D systemctl restart systemd-nspawn@$(mailbox_container).service
+
+.DEFAULT_GOAL := help
+help: ## This help
+	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
+		| sed -r 's/:.*## /\t/' \
+		| while read -r target message; do \
+		  printf "$(color_green)%-$(col_size)s$(color_blue)\t%s$(color_off)\n" "$$target" "$$message" ;\
+		done
+	$(msg) '\nAdd V=99 for verbose mode\n'
