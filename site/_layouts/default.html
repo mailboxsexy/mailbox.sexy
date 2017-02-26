@@ -1,14 +1,17 @@
+{% capture current_lang_url %}{% if site.lang != 'en' %}/{{site.lang}}{% endif %}{% endcapture %}
 <!DOCTYPE html>
 <html lang="{{ site.lang }}" prefix="og: http://ogp.me">
   <head>
   <meta charset="utf-8" />
-    <title>{{ page.title }}</title>
+    <title>{% t page.title %}</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     {% css main %}
 	</head>
   <body>
     <nav>
       <ul>
+        <li><a href="/">{% t home %}</a></li>
+        <li><a href="{{current_lang_url}}/translate">{% t translate %}</a></li>
         {% for lang in site.languages %}
           <li>
             {% if lang == 'en' %}
@@ -18,6 +21,7 @@
             {% endif %}
           </li>
         {% endfor %}
+      </ul>
     </nav>
 
     {{ content }}
