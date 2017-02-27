@@ -1,13 +1,19 @@
-## Técnica
+## Technical
 
-* Cada computadora personal es su propio servidor de correo enviando y recibiendo correos personales de computadora a computadora.  No hay intermediarios!
+* Each personal computer is its own email server sending and receiving personal
+  emails from computer to computer.  There is no intermediaries!
 
-* La red SMTP funciona con software ya disponible y probado hace años: Tor, Postfix, Dovecot, Thunderbird...
+* SMTP network works on available software, tested by years of use: Tor, Postfix,
+  dovecot, Thunderbird...
 
-* Lo que necesitamos es un transporte seguro, por lo que vamos a usar Tor, pero podría intercambiarse por cualquier transporte confiable: una VPN (como LibreVPN o cjdns) por ejemplo.  Los transportes inseguros son: Internet, redes locales, redes libres (!)[^redeslibres]...
+* What we need is a secure transport, so we are going to make use of Tor. It
+  provides secure transport, P2P addressing and authenticity of the recipient!
+  The Tor network don't know that it's transmitting an email, neither who send
+  or receive it, but the sender have the security that the email is received by
+  the correct destination.
 
-[^redeslibres]: Las redes libres no se caracterizan por preocuparse por la seguridad del transporte.  (Incluso algunos de sus proponentes se divierten inspeccionando el tráfico que pasa por sus nodos...)
+* The SMTP server only sends and receive email, and retry if the other end is not
+  available. Because this we use onion addresses that only works inside Tor
+  network.
 
-  Tor provee tanto el transporte seguro y P2P como el direccionamiento y la autenticación del destino!  La red Tor no sabe que está transmitiendo correo, ni quien lo envía ni quien lo recibe, pero quien envía tiene la seguridad que el correo es recibido por el destinatario correcto.
-
-  * El servidor SMTP solo se encarga de enviar y recibir correo y de reintentar si el otro lado no está disponible.  Para esto usamos direcciones mailbox@mailboxsexy.onion que solo funcionan dentro de la red Tor.
+* The whole system runs inside a [Systemd container](https://www.freedesktop.org/software/systemd/man/systemd-nspawn.html), it has an small footprint on the host systemd, and maintains it isolated.
