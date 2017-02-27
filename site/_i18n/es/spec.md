@@ -1,4 +1,3 @@
-
 ## Técnica
 
 * Cada computadora personal es su propio servidor de correo enviando y recibiendo correos personales _¡sin intermediarios!_ de computadora a computadora.  No hay intermediarios!
