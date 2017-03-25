@@ -49,5 +49,4 @@ function poweroff() {
     | xargs kill -SIGUSR1
 }
 
-subcommand="$1"; shift
-${subcommand} $@
+$@

@@ -184,10 +184,6 @@ drop_headers += user-agent x-enigmail x-mailer x-originating-ip received
 # `smtp_header_checks`.
 #
 # Also authenticates users against dovecot
-#
-# TODO: add `canonical` so every address is mailbox@hiddenservice.onion
-# instead of user@hiddenservice.onion or user@mailbox.local or whatever
-# the user prefers.
 $(work_dir)/etc/postfix/main.cf: always
 	$(msg) 'Configuring main.cf'
 	$(postconf) smtputf8_enable=no # alpine doesn't build postfix with icu
@@ -215,6 +211,7 @@ $(work_dir)/etc/postfix/main.cf: always
 	$(postconf) inet_interfaces=$(mailbox_address)
 	$(postconf) smtpd_tls_cert_file=/etc/ssl/dovecot/server.pem
 	$(postconf) smtpd_tls_key_file=/etc/ssl/dovecot/server.key
+	$(postconf) canonical_maps=hash:/etc/postfix/canonical
 	$(done)
 
 $(work_dir)/etc/postfix/master.cf: always
