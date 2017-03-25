@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+function stop() {
+  ip address del ${mailbox_address}/32 dev lo
+  iptables -t nat -D PREROUTING -p tcp -d ${tor_virtual_network} \
+    -j REDIRECT --to-port ${tor_transparent_port}
+  iptables -t nat -D OUTPUT     -p tcp -d ${tor_virtual_network} \
+    -j REDIRECT --to-port ${tor_transparent_port}
+}
+
+function start() {
+# Add the mailbox address
+  ip address add ${mailbox_address}/32 dev lo
+# Add transparent proxying to Tor
+  iptables -t nat -A PREROUTING -p tcp -d ${tor_virtual_network} \
+    -j REDIRECT --to-port ${tor_transparent_port}
+  iptables -t nat -A OUTPUT     -p tcp -d ${tor_virtual_network} \
+    -j REDIRECT --to-port ${tor_transparent_port}
+
+# Append hostnames to /etc/hosts
+  grep -q "^${mailbox_address} ${mailbox_domain}" /etc/hosts \
+    || echo "${mailbox_address} ${mailbox_domain}" >>/etc/hosts
+  grep -q "^${mailbox_address} autoconfig.${mailbox_domain}" /etc/hosts \
+    || echo "${mailbox_address} autoconfig.${mailbox_domain}" >>/etc/hosts
+}
+
+function boot() {
+  systemd-nspawn \
+    --quiet \
+    --boot \
+    --link-journal=auto \
+    --settings=override \
+    --machine=mailbox \
+    $@
+}
+
+# Since Alpine/Busybox doesn't interpret the SIGRTMIN-4 signal that
+# systemd sends to start a graceful shutdown, we tell systemd so send
+# SIGUSR1 to /sbin/init instead.
+#
+# This will work with `machinectl terminate mailbox` but
+# not with `machinectl stop mailbox`.
+#
+# See https://forja.lainventoria.com.ar/mailbox.sexy/mailbox/issues/13
+function poweroff() {
+  machinectl show ${mailbox_container} \
+    | grep Leader \
+    | cut -d= -f2 \
+    | xargs kill -SIGUSR1
+}
+
+subcommand="$1"; shift
+${subcommand} $@

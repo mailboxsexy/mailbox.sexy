@@ -339,45 +339,23 @@ $(tmp_dir)/config.mk: config.mk
 $(tmp_dir)/Makefile: $(render_template)/Makefile
 	$D install -Dm 644 -o root -g root $< $@
 
-mailbox_dir  := $(mailbox_domain).$(shell date +%F)
+$(tmp_dir)/mailbox.sexy: $(render_template)/mailbox.sexy
+	$D install -Dm 644 -o root -g root $< $@
+
+mailbox_dir  := $(mailbox_domain).$(shell date +%F).$(alpine_arch)
 tarball_deps := $(render_template)/override.conf \
 	$(render_template)/systemd-nspawn@debian.service \
 	$(work_dir) \
 	$(tmp_dir)/Makefile \
 	$(tmp_dir)/lib/macros.mk \
 	$(tmp_dir)/lib/colors.mk \
-	$(tmp_dir)/config.mk
+	$(tmp_dir)/config.mk \
+	$(tmp_dir)/mailbox.sexy
 tarball: $(tarball_deps) ## Create a tarball for distribution
 	$(msg) "Tarballin'"
 	$D tar $(verbose_flag) --transform='s/^$(notdir $(tmp_dir))/$(mailbox_dir)/' \
 	  -cJf $(mailbox_dir).tar.xz \
 	  $(patsubst $(dir $(tmp_dir))%,%,$^)
-	$(done)
-
-boot: ## Boot into Alpine for testing
-	$(msg) 'Starting Alpine'
-	$(D) systemd-nspawn --boot --directory=$(work_dir) --machine=$(mailbox_domain)
-	$(done)
-
-# TODO detect support for iptables managers and install corresponding
-# snippets
-run: ## Run Alpine as if installed
-	$(msg) 'Configuring host'
-	$D grep -qw $(mailbox_domain) /etc/hosts || echo '$(mailbox_address) $(mailbox_domain)' >>/etc/hosts
-	$D grep -qw autoconfig.$(mailbox_domain) /etc/hosts || echo '$(mailbox_address) autoconfig.$(mailbox_domain)' >>/etc/hosts
-	$(done)
-	$(msg) 'Configuring firewall'
-	$D iptables -t nat -A PREROUTING -p tcp -d $(tor_virtual_network) -j REDIRECT --to-port $(tor_transparent_port)
-	$D iptables -t nat -A OUTPUT     -p tcp -d $(tor_virtual_network) -j REDIRECT --to-port $(tor_transparent_port)
-	$(done)
-	$(msg) 'Configuring network'
-	$D ip address add $(mailbox_address)/32 dev lo || :
-	$(done)
-	$(MAKE) boot
-	$(msg) 'Tearing down'
-	$D ip address del $(mailbox_address)/32 dev lo
-	$D iptables -t nat -D PREROUTING -p tcp -d $(tor_virtual_network) -j REDIRECT --to-port $(tor_transparent_port)
-	$D iptables -t nat -D OUTPUT     -p tcp -d $(tor_virtual_network) -j REDIRECT --to-port $(tor_transparent_port)
 	$(done)
 
 clean: ## Remove temporary files

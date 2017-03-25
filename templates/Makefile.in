@@ -62,15 +62,23 @@ endif
 	$D systemctl enable systemd-nspawn@$(mailbox_container).service
 	$(done)
 
+/usr/bin/mailbox.sexy: mailbox.sexy
+	$(msg) 'Installing mailbox.sexy command'
+	$D install -m 750 -o root -g root $< $@
+	$(done)
+
+install_deps := /usr/bin/mailbox.sexy $(work_dir) \
+	$(service_dest) $(work_dir)/etc/localtime
+
 passwd: ## Change your password
 	$(msg) "Please set your password\n"
 	$(run_alpine) /usr/bin/passwd $(mailbox_user)
 
-install: $(work_dir) $(service_dest) $(work_dir)/etc/localtime ## Install mailbox.sexy!
+install: $(install_deps) ## Install mailbox.sexy!
 	$(msg) 'Thanks for installing mailbox.sexy!\n'
 	$(msg) 'Now you can run it with this command:\n'
 	$(msg) '\n'
-	$(msg) '  systemctl start systemd-nspawn@$(mailbox_container).service\n'
+	$(msg) '  machinectl start $(mailbox_container)\n'
 	$(msg) '\n'
 	$(msg) 'You can configure it on your email client with this info\n'
 	$(msg) '\n'
@@ -87,6 +95,8 @@ install: $(work_dir) $(service_dest) $(work_dir)/etc/localtime ## Install mailbo
 
 all: install passwd ## Install, set password and start sending email
 	$D systemctl restart systemd-nspawn@$(mailbox_container).service
+	$(msg) 'Your hidden address is: '
+	$D cat $(work_dir)/var/lib/tor/$(mailbox_domain)/hostname
 
 .DEFAULT_GOAL := help
 help: ## This help

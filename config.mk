@@ -34,7 +34,7 @@ tor_transparent_port ?= 9041
 
 alpine_flavor       := minirootfs
 alpine_version      := 3.5
-alpine_full_version := $(alpine_version).1
+alpine_full_version := $(alpine_version).2
 alpine_arch         := x86_64
 alpine_file         := alpine-$(alpine_flavor)-$(alpine_full_version)-$(alpine_arch).tar.gz
 alpine_dl           := https://nl.alpinelinux.org/alpine/v$(alpine_version)/releases/$(alpine_arch)/$(alpine_file)
