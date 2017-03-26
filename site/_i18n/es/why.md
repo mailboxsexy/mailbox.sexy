@@ -14,7 +14,7 @@ Podría ser peor, como las identidades en [Pond](https://github.com/agl/pond),
 Siempre podés usar la libreta de direcciones para recordar las identidades de
 tus amigas.
 
-#### ¿Por qué en un container!
+#### ¡Por qué en un container!
 
 Podríamos haber distribuido mailbox.sexy de forma que pueda correr en tu
 sistema operativo preferido, pero preferimos ahorrarnos dolores de cabeza

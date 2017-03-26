@@ -11,7 +11,6 @@
   <body>
     <nav>
       <ul>
-        <li><a href="/">{% t home %}</a></li>
         <li><a href="{{current_lang_url}}/translate">{% t translate %}</a></li>
         {% for lang in site.languages %}
           <li>
@@ -25,6 +24,14 @@
       </ul>
     </nav>
 
+    <nav>
+      <ul>
+        <li><a href="/">{% t home %}</a></li>
+        <li><a href="https://releases.mailbox.sexy">{% t download %}</a></li>
+        <li><a href="{{current_lang_url}}/spec">spec</a></li>
+        <li><a href="{{current_lang_url}}/why">{% t why %}</a></li>
+      </ul>
+    </nav>
     {{ content }}
   </body>
 </html>
