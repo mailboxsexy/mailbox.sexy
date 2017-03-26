@@ -1,38 +1,33 @@
-# Eleccion técnica
+## Why not use ×?
 
-## ¿Por qué no ×?
+There're lots of project that try to reinvent e-mail's wheel, or replace
+with something else.  The issue is that they start with the user
+interfaces, thus discarding years of work without solving the real
+issue, the centralization of communication between people.  We don't
+want to reinvent the wheel, we want something that works today.
 
-Existen muchos proyectos que intentan re-inventar el correo electrónico, o
-reemplazarlo por otra cosa.  El problema es que empiezan por las interfaces de
-usuaria, descartando años y años de trabajo, sin solucionar el problema real,
-que es la centralización de las comunicaciones entre personas.  Nosotras no
-queremos re-inventar la rueda, queremos algo que funcione hoy.
+## Hidden services are difficult to read and remember!
 
-## ¡Los hiddenservice.onion son difíciles de leer/recordar!
+Until someone figures out Zooko's triangle, this is what we have.  It
+could be worse, such as identities on
+[Pond](https://github.com/agl/pond), [Tox](https://tox.chat/), etc.  You
+can always use your addressbook to remember your friends' identities.
 
-Hasta que alguien resuelva el triángulo de Zooko, es lo mejor que tenemos.
-Podría ser peor, como las identidades en Pond, Tox, etc.
+## Why on a container!
 
-Siempre podés usar la libreta de direcciones para recordar las identidades de
-tus amigas.
+We could've distributed mailbox.sexy in a way where you'd run it on your
+prefered operating system, but we prefered to save ourselves some
+headaches by making the minimal amount of changes to the host, very
+probably incompatible between systems, so we standarized everything in a
+single operating system, running inside a container.  We chose
+`systemd-nspawn` because is a container management tool already
+available on most GNU/Linux distributions.
 
-## ¿Por qué en un container!
+## Why `systemd-nspawn`?  Systemd is shit!
 
-Podríamos haber distribuido mailbox.sexy de forma que pueda correr en tu
-sistema operativo preferido, pero preferimos ahorrarnos dolores de cabeza
-haciendo los menores cambios en el host, muy probablemente incompatibles con
-las diferentes instalaciones, por lo que estandarizamos todo en un solo sistema
-operativo, corriendo en un contenedor.  Elegimos `systemd-nspawn` porque es una
-herramienta de gestión de contenedores disponible en la mayoría de las
-distribuciones más usadas.
+You're welcome to send patches to make mailbox.sexy work on any other
+container management tool :3
 
-## ¿Por qué `systemd-nspawn`? ¡Systemd es una mierda!
+## How can I have several users on the same hiddenservice.onion?
 
-Estás invitada a mandarnos parches para hacer que mailbox.sexy funcione en
-cualquier otro gestor de contenedores :3
-
-## ¿Cómo puedo tener varias usuarias dentro del mismo hiddenservice.onion?
-
-Todavía no estamos trabajando en esto, ¡mandanos parches!
-
-
+We're still working on this, patches welcome!
