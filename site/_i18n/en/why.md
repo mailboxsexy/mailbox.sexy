@@ -11,7 +11,7 @@ want to reinvent the wheel, we want something that works today.
 Until someone figures out Zooko's triangle, this is what we have.  It
 could be worse, such as identities on
 [Pond](https://github.com/agl/pond), [Tox](https://tox.chat/), etc.  You
-can always use your addressbook to remember your friends' identities.
+can always use your addressbook to remember your friends identities.
 
 ## Why on a container!
 
