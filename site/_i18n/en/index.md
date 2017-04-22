@@ -27,9 +27,7 @@ They don't even know you were sending e-mail!
 # Work as root
 sudo bash
 # Download
-wget https://releases.mailbox.sexy/mailbox.local.2017-03-25.x86_64.tar.xz{,.sig}
-# Verify
-gpg --verify mailbox.local.2017-03-25.x86_64.tar.xz.sig
+wget https://github.com/mailboxsexy/mailbox.sexy/releases/download/2017-03-25/mailbox.local.2017-03-25.x86_64.tar.xz
 # Extract
 tar xvf mailbox.local.2017-03-25.x86_64.tar.xz
 # Install

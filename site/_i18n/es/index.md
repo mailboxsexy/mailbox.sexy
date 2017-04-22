@@ -30,9 +30,7 @@ enviaste.  ¡Ni siquiera saben que estuviste enviando correo!
 # Trabajar como root
 sudo bash
 # Descargar
-wget https://releases.mailbox.sexy/mailbox.local.2017-03-25.x86_64.tar.xz{,.sig}
-# Verificar
-gpg --verify mailbox.local.2017-03-25.x86_64.tar.xz.sig
+wget https://github.com/mailboxsexy/mailbox.sexy/releases/download/2017-03-25/mailbox.local.2017-03-25.x86_64.tar.xz
 # Extraer
 tar xvf mailbox.local.2017-03-25.x86_64.tar.xz
 # Instalar
