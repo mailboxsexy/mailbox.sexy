@@ -52,8 +52,8 @@ you send e-mail.  Thunderbird will auto-configure this account.
 If you're using another client that doesn't support auto-configuration,
 the information you need is this:
 
-* Usuaria: mailbox
-* Contraseña: the one you selected
+* User: mailbox
+* Password: the one you selected
 * SMTP: mailbox.local:587 (STARTTLS)
 * IMAP: mailbox.local:993 (TLS)
 * POP3: mailbox.local:995 (TLS)
