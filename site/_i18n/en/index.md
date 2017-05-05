@@ -35,7 +35,7 @@ cd mailbox.local.2017-03-25.x86_64
 make all
 # Clean up
 cd ..
-rm -r mailbox.local.2017-03-25.x86_64.tar.xz*
+rm -r mailbox.local.2017-03-25.x86_64*
 ```
 
 This process installs mailbox.sexy's container on `/var/lib/machines`.

@@ -38,7 +38,7 @@ cd mailbox.local.2017-03-25.x86_64
 make all
 # Hacer limpieza
 cd ..
-rm -r mailbox.local.2017-03-25.x86_64.tar.xz*
+rm -r mailbox.local.2017-03-25.x86_64*
 ```
 
 Este proceso instala el contenedor de _mailbox.sexy_ en
