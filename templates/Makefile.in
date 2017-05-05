@@ -42,8 +42,8 @@ service_dest  := /etc/systemd/system/systemd-nspawn@$(mailbox_container).service
 endif
 
 
-work_dir := $(container_dir)/$(mailbox_container)/
-$(work_dir)/: $(container)
+work_dir := $(container_dir)/$(mailbox_container)
+$(work_dir): $(container)
 	$(msg) 'Installing container'
 	$D cp -a $< $@
 	$(done)
